@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transactions - ExpenseTracker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Variables CSS */
+        :root {
+            --primary-color: #FF69B4;
+            --secondary-color: #4A90E2;
+            --success-color: #50C878;
+            --warning-color: #FFD700;
+            --danger-color: #FF6347;
+            --info-color: #20B2AA;
+            
+            --bg-light: #F9F9F9;
+            --bg-white: #FFFFFF;
+            --text-dark: #333333;
+            --text-light: #666666;
+            --text-muted: #999999;
+            
+            --border-color: #E0E0E0;
+            --shadow-light: 0 2px 10px rgba(0, 0, 0, 0.1);
+            --shadow-medium: 0 4px 20px rgba(0, 0, 0, 0.15);
+            --shadow-heavy: 0 8px 30px rgba(0, 0, 0, 0.2);
+            
+            --border-radius: 12px;
+            --border-radius-sm: 8px;
+            --border-radius-lg: 16px;
+            
+            --transition: all 0.3s ease;
+        }
+
+        /* Reset et base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.6;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+            transform: translateX(0);
+            transition: var(--transition);
+        }
+
+        .sidebar-header {
+            padding: 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .sidebar-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.25rem;
+            cursor: pointer;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 1rem 0;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 2rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: var(--transition);
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border-left-color: white;
+        }
+
+        .sidebar-footer {
+            padding: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 24px;
+            border: none;
+            border-radius: var(--border-radius-sm);
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: var(--transition);
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), #FF1493);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--text-dark);
+            border: 2px solid var(--border-color);
+        }
+
+        .btn-outline:hover {
+            background: var(--bg-white);
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .btn-full {
+            width: 100%;
+        }
+
+        .btn-icon {
+            padding: 12px;
+            border-radius: 50%;
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 12px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .top-bar {
+            background: var(--bg-white);
+            padding: 1rem 2rem;
+            box-shadow: var(--shadow-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            cursor: pointer;
+            color: var(--text-dark);
+        }
+
+        .top-bar h1 {
+            margin: 0;
+            font-size: 1.75rem;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Transactions Content */
+        .transactions-content {
+            padding: 2rem;
+        }
+
+        .add-transaction-card,
+        .filters-card,
+        .transactions-list-card {
+            background: var(--bg-white);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-light);
+            margin-bottom: 2rem;
+        }
+
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-header h3 {
+            margin: 0;
+        }
+
+        .add-form {
+            padding: 1.5rem;
+            display: none;
+        }
+
+        .add-form.active {
+            display: block;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-dark);
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .radio {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .radio input {
+            display: none;
+        }
+
+        .radio-mark {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            position: relative;
+            transition: var(--transition);
+        }
+
+        .radio-mark.expense {
+            border-color: var(--danger-color);
+        }
+
+        .radio-mark.income {
+            border-color: var(--success-color);
+        }
+
+        .radio input:checked + .radio-mark {
+            border-width: 6px;
+        }
+
+        .radio input:checked + .radio-mark.expense {
+            border-color: var(--danger-color);
+        }
+
+        .radio input:checked + .radio-mark.income {
+            border-color: var(--success-color);
+        }
+
+        .input-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-group i {
+            position: absolute;
+            left: 12px;
+            color: var(--text-muted);
+            z-index: 2;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px 12px 12px 40px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            font-size: 14px;
+            transition: var(--transition);
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(255, 105, 180, 0.1);
+        }
+
+        select,
+        input[type="text"],
+        input[type="number"],
+        input[type="date"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            font-size: 14px;
+            transition: var(--transition);
+        }
+
+        select:focus,
+        input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(255, 105, 180, 0.1);
+        }
+
+        /* Filters */
+        .filters-content {
+            padding: 1.5rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .filter-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-dark);
+        }
+
+        .amount-filter {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .amount-filter input {
+            flex: 1;
+        }
+
+        /* Transactions List */
+        .transactions-container {
+            padding: 1.5rem;
+        }
+
+        .transaction-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            margin-bottom: 0.5rem;
+            transition: var(--transition);
+        }
+
+        .transaction-item:hover {
+            background: var(--bg-light);
+            border-color: var(--primary-color);
+        }
+
+        .transaction-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex: 1;
+        }
+
+        .transaction-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.25rem;
+        }
+
+        .transaction-details h4 {
+            margin: 0 0 0.25rem 0;
+            font-size: 1rem;
+        }
+
+        .transaction-details p {
+            margin: 0;
+            font-size: 0.875rem;
+            color: var(--text-light);
+        }
+
+        .transaction-amount {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-right: 1rem;
+        }
+
+        .transaction-amount.positive {
+            color: var(--success-color);
+        }
+
+        .transaction-amount.negative {
+            color: var(--danger-color);
+        }
+
+        .transaction-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        /* Modal Styles */
+        .modal {
+            position: fixed; z-index: 1000; left: 0; top: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center;
+        }
+
+        .modal-content {
+            background: #fff; padding: 2rem; border-radius: 10px; min-width: 320px; max-width: 90vw;
+            position: relative;
+        }
+
+        .close {
+            position: absolute; top: 10px; right: 20px; font-size: 2rem; cursor: pointer;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            
+            .sidebar-toggle {
+                display: block;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .filters-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .transactions-content {
+                padding: 1rem;
+            }
+            
+            .transaction-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            
+            .transaction-actions {
+                align-self: flex-end;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <i class="fas fa-wallet"></i>
+                <span>ExpenseTracker</span>
+            </div>
+            <button class="sidebar-toggle" onclick="toggleSidebar()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="{% url 'dashboard' %}" class="nav-item">
+                <i class="fas fa-chart-line"></i>
+                <span>Tableau de bord</span>
+            </a>
+            <a href="{% url 'transactions' %}" class="nav-item{% if request.resolver_match.url_name == 'transactions' %} active{% endif %}">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Transactions</span>
+            </a>
+            <a href="{% url 'categories' %}" class="nav-item{% if request.resolver_match.url_name == 'categories' %} active{% endif %}">
+                <i class="fas fa-tags"></i>
+                <span>Catégories</span>
+            </a>
+            <a href="{% url 'budgets' %}" class="nav-item">
+                <i class="fas fa-piggy-bank"></i>
+                <span>Budgets</span>
+            </a>
+            <a href="{% url 'export' %}" class="nav-item">
+                <i class="fas fa-download"></i>
+                <span>Export</span>
+            </a>
+            <a href="{% url 'profile' %}" class="nav-item">
+                <i class="fas fa-user"></i>
+                <span>Profil</span>
+            </a>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <button class="btn btn-outline btn-full" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+                Déconnexion
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Top Bar -->
+        <header class="top-bar">
+            <button class="mobile-menu-btn" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h1>Transactions</h1>
+            <div class="user-menu">
+                <div class="user-avatar">
+                    <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face" alt="Avatar">
+                </div>
+                <span>{{ user.first_name }} {{ user.last_name }}</span>
+            </div>
+        </header>
+
+        <!-- Transactions Content -->
+        <div class="transactions-content">
+            <!-- Add Transaction Form -->
+            <div class="add-transaction-card">
+                <div class="card-header">
+                    <h3>Ajouter une transaction</h3>
+                    <button class="btn btn-icon" onclick="toggleAddForm()">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+                
+                <div class="add-form" id="addTransactionForm">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Type</label>
+                                <div class="radio-group">
+                                    <label class="radio">
+                                        <input type="radio" name="type" value="expense" checked>
+                                        <span class="radio-mark expense"></span>
+                                        Dépense
+                                    </label>
+                                    <label class="radio">
+                                        <input type="radio" name="type" value="income">
+                                        <span class="radio-mark income"></span>
+                                        Revenu
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="amount">Montant (F CFA)</label>
+                                <div class="input-group">
+                                    <i class="fas fa-euro-sign"></i>
+                                    <input type="number" id="amount" name="amount" step="0.01" min="0" required placeholder="Montant en F CFA">                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="category">Catégorie</label>
+                                <select id="category" name="category" required>
+                                    <option value="">Sélectionner une catégorie</option>
+                                    {% for cat in categories %}
+                                        <option value="{{ cat.id }}">
+                                            {% if cat.icon %}{{ cat.icon }} {% endif %}{{ cat.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <div style="margin-top: 0.5rem;">
+                                    <button type="button" class="btn btn-outline btn-sm" onclick="openAddCategoryModal()">
+                                        <i class="fas fa-plus"></i> Ajouter une catégorie
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="description">Description</label>
+                                <input type="text" id="description" name="description" placeholder="Description de la transaction">
+                            </div>
+                            <div class="form-group">
+                                <label for="date">Date</label>
+                                <input type="date" id="date" name="date" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-plus"></i>
+                            Ajouter la transaction
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="filters-card">
+                <div class="card-header">
+                    <h3>Filtres</h3>
+                    <button class="btn btn-outline btn-sm" type="button" onclick="window.location.href=window.location.pathname">
+                        <i class="fas fa-times"></i>
+                        Effacer
+                    </button>
+                </div>
+                <form method="get" class="filters-content">
+                    <div class="filter-group">
+                        <label>Période</label>
+                        <select name="period">
+                            <option value="all" {% if request.GET.period == "all" or not request.GET.period %}selected{% endif %}>Toutes les périodes</option>
+                            <option value="today" {% if request.GET.period == "today" %}selected{% endif %}>Aujourd'hui</option>
+                            <option value="week" {% if request.GET.period == "week" %}selected{% endif %}>Cette semaine</option>
+                            <option value="month" {% if request.GET.period == "month" %}selected{% endif %}>Ce mois</option>
+                            <option value="year" {% if request.GET.period == "year" %}selected{% endif %}>Cette année</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Catégorie</label>
+                        <select name="category">
+                            <option value="all" {% if request.GET.category == "all" or not request.GET.category %}selected{% endif %}>Toutes les catégories</option>
+                            <option value="food" {% if request.GET.category == "food" %}selected{% endif %}>🍽️ Alimentation</option>
+                            <option value="transport" {% if request.GET.category == "transport" %}selected{% endif %}>🚗 Transport</option>
+                            <option value="entertainment" {% if request.GET.category == "entertainment" %}selected{% endif %}>🎬 Loisirs</option>
+                            <option value="shopping" {% if request.GET.category == "shopping" %}selected{% endif %}>🛍️ Shopping</option>
+                            <option value="bills" {% if request.GET.category == "bills" %}selected{% endif %}>📄 Factures</option>
+                            <option value="health" {% if request.GET.category == "health" %}selected{% endif %}>🏥 Santé</option>
+                            <option value="salary" {% if request.GET.category == "salary" %}selected{% endif %}>💼 Salaire</option>
+                            <option value="freelance" {% if request.GET.category == "freelance" %}selected{% endif %}>💻 Freelance</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Type</label>
+                        <select name="type">
+                            <option value="all" {% if request.GET.type == "all" or not request.GET.type %}selected{% endif %}>Tous les types</option>
+                            <option value="expense" {% if request.GET.type == "expense" %}selected{% endif %}>Dépenses</option>
+                            <option value="income" {% if request.GET.type == "income" %}selected{% endif %}>Revenus</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Montant</label>
+                        <div class="amount-filter">
+                            <input type="number" name="min_amount" placeholder="Min" value="{{ request.GET.min_amount }}">
+                            <span>-</span>
+                            <input type="number" name="max_amount" placeholder="Max" value="{{ request.GET.max_amount }}">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-outline btn-sm" style="margin-top:1rem;">
+                        <i class="fas fa-check"></i>
+                        Appliquer
+                    </button>
+                </form>
+            </div>
+
+            <!-- Transactions List -->
+            <div class="transactions-list-card">
+                <div class="card-header">
+                    <h3>Historique des transactions</h3>
+                </div>
+                
+                <div class="transactions-container" id="transactionsContainer">
+                    {% for t in transactions %}
+                    <div class="transaction-item">
+                        <div class="transaction-info">
+                            <div class="transaction-icon" style="background-color: {% if t.type == 'expense' %}#FF69B4{% else %}#50C878{% endif %}">
+                                {% if t.category.icon %}{{ t.category.icon }}{% else %} {% endif %}
+                            </div>
+                            <div class="transaction-details">
+                                <h4>{{ t.description|default:"-" }}</h4>
+                                <p>
+                                    {{ t.get_type_display }} • 
+                                    {{ t.date|date:"d/m/Y" }}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="transaction-amount {% if t.type == 'income' %}positive{% else %}negative{% endif %}">
+                            {% if t.type == 'income' %}+{% else %}-{% endif %}{{ t.amount }} F&nbsp;CFA
+                        </div>
+                      
+                    </div>
+                    {% empty %}
+                    <p>Aucune transaction pour l’instant.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal d'édition de transaction -->
+    <div id="editTransactionModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeEditForm()">&times;</span>
+            <h3>Modifier la transaction</h3>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="transaction_id" id="edit_transaction_id">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Type</label>
+                        <div class="radio-group">
+                            <label class="radio">
+                                <input type="radio" name="type" value="expense" id="edit_type_expense">
+                                <span class="radio-mark expense"></span>
+                                Dépense
+                            </label>
+                            <label class="radio">
+                                <input type="radio" name="type" value="income" id="edit_type_income">
+                                <span class="radio-mark income"></span>
+                                Revenu
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="edit_amount">Montant (F CFA)</label>
+                        <div class="input-group">
+                            <i class="fas fa-euro-sign"></i>
+                            <input type="number" id="edit_amount" name="amount" step="0.01" min="0" required>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="edit_description">Description</label>
+                        <input type="text" id="edit_description" name="description">
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_date">Date</label>
+                        <input type="date" id="edit_date" name="date" required>
+                    </div>
+                </div>
+                <button type="submit" name="edit_transaction" class="btn btn-primary">
+                    <i class="fas fa-save"></i>
+                    Enregistrer
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="closeEditForm()">Annuler</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal d'ajout de catégorie rapide -->
+    <div id="addCategoryModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeAddCategoryModal()">&times;</span>
+            <h3>Nouvelle catégorie</h3>
+            <form method="post" id="quickAddCategoryForm">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="newCategoryName">Nom</label>
+                    <input type="text" id="newCategoryName" name="categoryName" required>
+                </div>
+                <div class="form-group">
+                    <label>Type</label>
+                    <select name="categoryType" id="newCategoryType" required>
+                        <option value="expense">Dépense</option>
+                        <option value="income">Revenu</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Icône (optionnel)</label>
+                    <input type="text" id="newCategoryIcon" name="selectedIcon" maxlength="2" placeholder="ex: 🍽️">
+                </div>
+                <div class="form-group">
+                    <label>Couleur</label>
+                    <input type="color" name="selectedColor" id="newCategoryColor" value="#FF69B4" required>
+                </div>
+                <button type="submit" class="btn btn-primary" name="add_category">
+                    <i class="fas fa-plus"></i> Ajouter
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Toggle add form
+        function toggleAddForm() {
+            const form = document.getElementById('addTransactionForm');
+            form.classList.toggle('active');
+            
+            if (form.classList.contains('active')) {
+                document.getElementById('amount').focus();
+                setCurrentDate();
+            }
+        }
+
+        // Set current date
+        function setCurrentDate() {
+            const dateInput = document.getElementById('date');
+            if (dateInput) {
+                dateInput.value = new Date().toISOString().split('T')[0];
+            }
+        }
+
+        // Add transaction (front-end only)
+        function addTransaction(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            const type = formData.get('type');
+            const amount = parseFloat(formData.get('amount'));
+            const category = formData.get('category');
+            const description = formData.get('description');
+            const date = formData.get('date');
+            
+            if (!amount || !category || !date) {
+                alert('Veuillez remplir tous les champs obligatoires');
+                return;
+            }
+            
+            // Simulate adding transaction
+            alert('Transaction ajoutée avec succès !');
+            
+            // Reset form
+            event.target.reset();
+            setCurrentDate();
+            toggleAddForm();
+        }
+
+    
+        // Clear filters
+        function clearFilters() {
+            document.getElementById('periodFilter').value = 'all';
+            document.getElementById('categoryFilter').value = 'all';
+            document.getElementById('typeFilter').value = 'all';
+            document.getElementById('minAmount').value = '';
+            document.getElementById('maxAmount').value = '';
+            
+            applyFilters();
+        }
+
+        // Toggle sidebar
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('active');
+        }
+
+        // Logout function
+        function logout() {
+            if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
+                window.location.href = 'index.html';
+            }
+        }
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            setCurrentDate();
+            
+            // Add click outside to close sidebar on mobile
+            document.addEventListener('click', function(e) {
+                const sidebar = document.getElementById('sidebar');
+                const menuBtn = document.querySelector('.mobile-menu-btn');
+                
+                if (window.innerWidth <= 768 && 
+                    !sidebar.contains(e.target) && 
+                    !menuBtn.contains(e.target) && 
+                    sidebar.classList.contains('active')) {
+                    sidebar.classList.remove('active');
+                }
+            });
+        });
+
+        function showEditForm(id, type, amount, category, description, date) {
+            document.getElementById('editTransactionModal').style.display = 'block';
+            document.getElementById('edit_transaction_id').value = id;
+            document.getElementById('edit_amount').value = amount;
+            document.getElementById('edit_description').value = description;
+            document.getElementById('edit_date').value = date;
+            
+            // Set radio button
+            document.getElementById('edit_type_' + type).checked = true;
+            
+            // Set category
+            document.getElementById('edit_category').value = category;
+        }
+        function closeEditForm() {
+            document.getElementById('editTransactionModal').style.display = 'none';
+        }
+
+        function closeAddCategoryModal() {
+            document.getElementById('addCategoryModal').style.display = 'none';
+        }
+
+        // Open add category modal
+        function openAddCategoryModal() {
+            document.getElementById('addCategoryModal').style.display = 'flex';
+        }
+
+        // Optionnel : fermer le modal après ajout
+        document.addEventListener('DOMContentLoaded', function() {
+            const quickForm = document.getElementById('quickAddCategoryForm');
+            if (quickForm) {
+                quickForm.addEventListener('submit', function() {
+                    setTimeout(() => {
+                        closeAddCategoryModal();
+                        // Optionnel : rafraîchir la page pour voir la nouvelle catégorie
+                        window.location.reload();
+                    }, 500);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

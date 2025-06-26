@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Budgets - ExpenseTracker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Variables CSS */
+        :root {
+            --primary-color: #FF69B4;
+            --secondary-color: #4A90E2;
+            --success-color: #50C878;
+            --warning-color: #FFD700;
+            --danger-color: #FF6347;
+            --info-color: #20B2AA;
+            
+            --bg-light: #F9F9F9;
+            --bg-white: #FFFFFF;
+            --text-dark: #333333;
+            --text-light: #666666;
+            --text-muted: #999999;
+            
+            --border-color: #E0E0E0;
+            --shadow-light: 0 2px 10px rgba(0, 0, 0, 0.1);
+            --shadow-medium: 0 4px 20px rgba(0, 0, 0, 0.15);
+            --shadow-heavy: 0 8px 30px rgba(0, 0, 0, 0.2);
+            
+            --border-radius: 12px;
+            --border-radius-sm: 8px;
+            --border-radius-lg: 16px;
+            
+            --transition: all 0.3s ease;
+        }
+
+        /* Reset et base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.6;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+            transform: translateX(0);
+            transition: var(--transition);
+        }
+
+        .sidebar-header {
+            padding: 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .sidebar-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.25rem;
+            cursor: pointer;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 1rem 0;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 2rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: var(--transition);
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border-left-color: white;
+        }
+
+        .sidebar-footer {
+            padding: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 24px;
+            border: none;
+            border-radius: var(--border-radius-sm);
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: var(--transition);
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), #FF1493);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--text-dark);
+            border: 2px solid var(--border-color);
+        }
+
+        .btn-outline:hover {
+            background: var(--bg-white);
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .btn-full {
+            width: 100%;
+        }
+
+        .btn-icon {
+            padding: 12px;
+            border-radius: 50%;
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 12px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .top-bar {
+            background: var(--bg-white);
+            padding: 1rem 2rem;
+            box-shadow: var(--shadow-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            cursor: pointer;
+            color: var(--text-dark);
+        }
+
+        .top-bar h1 {
+            margin: 0;
+            font-size: 1.75rem;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Budgets Content */
+        .budgets-content {
+            padding: 2rem;
+        }
+
+        .budget-overview-card,
+        .add-budget-card,
+        .budgets-list-card {
+            background: var(--bg-white);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-light);
+            margin-bottom: 2rem;
+        }
+
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-header h3 {
+            margin: 0;
+        }
+
+        .budget-period select {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            background: var(--bg-white);
+        }
+
+        .budget-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            padding: 1.5rem;
+        }
+
+        .budget-stat {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--bg-light);
+            border-radius: var(--border-radius-sm);
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: var(--border-radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.25rem;
+        }
+
+        .stat-info h3 {
+            margin: 0 0 0.25rem 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .stat-info p {
+            margin: 0;
+            color: var(--text-light);
+            font-size: 0.875rem;
+        }
+
+        .add-form {
+            padding: 1.5rem;
+            display: none;
+        }
+
+        .add-form.active {
+            display: block;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-dark);
+        }
+
+        .input-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-group i {
+            position: absolute;
+            left: 12px;
+            color: var(--text-muted);
+            z-index: 2;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px 12px 12px 40px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            font-size: 14px;
+            transition: var(--transition);
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(255, 105, 180, 0.1);
+        }
+
+        select,
+        input[type="number"],
+        input[type="date"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            font-size: 14px;
+            transition: var(--transition);
+        }
+
+        select:focus,
+        input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(255, 105, 180, 0.1);
+        }
+
+        .checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .checkbox input {
+            display: none;
+        }
+
+        .checkmark {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            position: relative;
+            transition: var(--transition);
+        }
+
+        .checkbox input:checked + .checkmark {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .checkbox input:checked + .checkmark::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .budgets-list {
+            padding: 1.5rem;
+        }
+
+        .budget-item {
+            background: var(--bg-white);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: var(--transition);
+        }
+
+        .budget-item:hover {
+            border-color: var(--primary-color);
+            box-shadow: var(--shadow-light);
+        }
+
+        .budget-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .budget-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .budget-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .budget-progress {
+            margin-bottom: 1rem;
+        }
+
+        .progress-bar-container {
+            background: #eee;
+            border-radius: 8px;
+            height: 18px;
+            margin-top: 8px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            color: #fff;
+            text-align: center;
+            font-size: 0.9em;
+            line-height: 18px;
+            border-radius: 8px;
+            transition: width 0.5s;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--success-color);
+            transition: var(--transition);
+        }
+
+        .progress-fill.warning {
+            background: var(--warning-color);
+        }
+
+        .progress-fill.danger {
+            background: var(--danger-color);
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            color: var(--text-light);
+        }
+
+        .budget-amounts {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            text-align: center;
+        }
+
+        .amount-item h4 {
+            margin: 0;
+            font-size: 1.25rem;
+        }
+
+        .amount-item p {
+            margin: 0;
+            font-size: 0.875rem;
+            color: var(--text-light);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            
+            .sidebar-toggle {
+                display: block;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .budgets-content {
+                padding: 1rem;
+            }
+            
+            .budget-amounts {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <i class="fas fa-wallet"></i>
+                <span>ExpenseTracker</span>
+            </div>
+            <button class="sidebar-toggle" onclick="toggleSidebar()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" class="nav-item">
+                <i class="fas fa-chart-line"></i>
+                <span>Tableau de bord</span>
+            </a>
+            <a href="transactions.html" class="nav-item">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Transactions</span>
+            </a>
+            <a href="categories.html" class="nav-item">
+                <i class="fas fa-tags"></i>
+                <span>Catégories</span>
+            </a>
+            <a href="{% url 'budgets' %}" class="nav-item active">
+                <i class="fas fa-piggy-bank"></i>
+                <span>Budgets</span>
+            </a>
+            <a href="search.html" class="nav-item">
+                <i class="fas fa-search"></i>
+                <span>Recherche</span>
+            </a>
+            <a href="export.html" class="nav-item">
+                <i class="fas fa-download"></i>
+                <span>Export</span>
+            </a>
+            <a href="profile.html" class="nav-item">
+                <i class="fas fa-user"></i>
+                <span>Profil</span>
+            </a>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <button class="btn btn-outline btn-full" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+                Déconnexion
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Top Bar -->
+        <header class="top-bar">
+            <button class="mobile-menu-btn" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h1>Budgets</h1>
+            <div class="user-menu">
+                <div class="user-avatar">
+                    <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face" alt="Avatar">
+                </div>
+                <span>{{ user.first_name }} {{ user.last_name }}</span>
+        </header>
+
+        <!-- Budgets Content -->
+        <div class="budgets-content">
+            <!-- Budget Overview -->
+            <div class="budget-overview-card">
+                <div class="card-header">
+                    <h3>Aperçu des budgets</h3>
+                    <div class="budget-period">
+                        <select id="budgetPeriod" onchange="updateBudgetPeriod()">
+                            <option value="current">Mois actuel</option>
+                            <option value="next">Mois prochain</option>
+                            <option value="custom">Période personnalisée</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="budget-stats">
+                    <div class="budget-stat">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #FF69B4, #FF1493);">
+                            <i class="fas fa-piggy-bank"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalBudget">{{ total_budget|floatformat:0 }} F&nbsp;CFA</h3>
+                            <p>Budget total</p>
+                        </div>
+                    </div>
+                    
+                    <div class="budget-stat">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #FF6347, #DC143C);">
+                            <i class="fas fa-credit-card"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="spentBudget">{{ spent_budget|floatformat:0 }} F&nbsp;CFA</h3>
+                            <p>Dépensé</p>
+                        </div>
+                    </div>
+                    
+                    <div class="budget-stat">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #50C878, #32CD32);">
+                            <i class="fas fa-coins"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="remainingBudget">{{ remaining_budget|floatformat:0 }} F&nbsp;CFA</h3>
+                            <p>Restant</p>
+                        </div>
+                    </div>
+                    
+                    <div class="budget-stat">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #FFD700, #FFA500);">
+                            <i class="fas fa-percentage"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="budgetUsage">{{ budget_usage|floatformat:0 }}%</h3>
+                            <p>Utilisé</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add Budget Form -->
+            <div class="add-budget-card">
+                <div class="card-header">
+                    <h3>Définir un budget</h3>
+                    <button class="btn btn-icon" onclick="toggleAddBudgetForm()">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+                
+                <div class="add-form" id="addBudgetForm">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="budgetCategory">Catégorie</label>
+                                <select id="budgetCategory" name="budgetCategory" required>
+                                    <option value="">Sélectionner une catégorie</option>
+                                    {% for cat in categories %}
+                                        <option value="{{ cat.id }}">
+                                            {% if cat.icon %}{{ cat.icon }} {% endif %}{{ cat.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="budgetAmount">Montant mensuel (F CFA)</label>
+                                <div class="input-group">
+                                    <input type="number" id="budgetAmount" name="budgetAmount" step="0.01" min="0" required placeholder="Montant en F CFA">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="budgetStartDate">Date de début</label>
+                                <input type="date" id="budgetStartDate" name="budgetStartDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="budgetEndDate">Date de fin (optionnel)</label>
+                                <input type="date" id="budgetEndDate" name="budgetEndDate">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="checkbox">
+                                <input type="checkbox" id="budgetAlerts" name="budgetAlerts" checked>
+                                <span class="checkmark"></span>
+                                Recevoir des alertes à 80% du budget
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-primary" name="add_budget">
+                            <i class="fas fa-plus"></i>
+                            Créer le budget
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Budgets List -->
+            <div class="budgets-list-card">
+                <div class="card-header">
+                    <h3>Mes budgets</h3>
+                    <div class="list-controls">
+                        <button class="btn btn-outline btn-sm" onclick="sortBudgets('category')">
+                            <i class="fas fa-sort-alpha-down"></i>
+                            Trier par catégorie
+                        </button>
+                        <button class="btn btn-outline btn-sm" onclick="sortBudgets('usage')">
+                            <i class="fas fa-sort-numeric-down"></i>
+                            Trier par utilisation
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="budgets-list" id="budgetsList">
+                    {% for item in budgets_progress %}
+                    <div class="budget-item">
+                        <div class="budget-header">
+                            <div class="budget-info">
+                                <div class="budget-icon" style="background-color: {{ item.budget.category.color }}">
+                                    {% if item.budget.category.icon %}{{ item.budget.category.icon }}{% endif %}
+                                </div>
+                                <div>
+                                    <h4>{{ item.budget.category.name }}</h4>
+                                    <p>Budget mensuel</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="budget-amounts">
+                            <div class="amount-item">
+                                <h4>{{ item.budget.amount|floatformat:0 }} F&nbsp;CFA</h4>
+                                <p>Budget</p>
+                            </div>
+                            <div class="amount-item">
+                                <h4>{{ item.spent|floatformat:0 }} F&nbsp;CFA</h4>
+                                <p>Dépensé</p>
+                            </div>
+                            <div class="amount-item">
+                                <h4>{{ item.restant|floatformat:0 }} F&nbsp;CFA</h4>
+                                <p>Restant</p>
+                            </div>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" style="width: {{ item.percent }}%; background: {% if item.percent >= 100 %}#e74c3c{% elif item.percent >= 80 %}#f1c40f{% else %}#50C878{% endif %};">
+                                {{ item.percent }}%
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="no-data" style="text-align: center; padding: 2rem;">
+                        <p style="font-size: 1.125rem; color: var(--text-light);">
+                            Aucun budget trouvé. Commencez par définir un budget ci-dessus.
+                        </p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+        }
+
+        function toggleAddBudgetForm() {
+            document.getElementById('addBudgetForm').classList.toggle('active');
+        }
+
+        function updateBudgetPeriod() {
+            var period = document.getElementById('budgetPeriod').value;
+            // Logique pour mettre à jour l'aperçu du budget en fonction de la période sélectionnée
+        }
+
+        function sortBudgets(criteria) {
+            var budgetsList = document.getElementById('budgetsList');
+            var items = Array.from(budgetsList.getElementsByClassName('budget-item'));
+
+            items.sort(function(a, b) {
+                var aValue, bValue;
+                if (criteria === 'category') {
+                    aValue = a.getElementsByClassName('budget-info')[0].getElementsByTagName('h4')[0].innerText;
+                    bValue = b.getElementsByClassName('budget-info')[0].getElementsByTagName('h4')[0].innerText;
+                } else if (criteria === 'usage') {
+                    aValue = parseFloat(a.getElementsByClassName('progress-bar')[0].style.width);
+                    bValue = parseFloat(b.getElementsByClassName('progress-bar')[0].style.width);
+                }
+                return aValue.localeCompare(bValue, undefined, { numeric: true });
+            });
+
+            items.forEach(function(item) {
+                budgetsList.appendChild(item);
+            });
+        }
+
+
+
+       
+        function logout() {
+            // Logique de déconnexion
+            alert('Déconnexion réussie !');
+            window.location.href = 'login.html'; // Rediriger vers la page de connexion
+        }
+    </script>
+</body>
+</html>

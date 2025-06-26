@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catégories - ExpenseTracker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Variables CSS */
+        :root {
+            --primary-color: #FF69B4;
+            --secondary-color: #4A90E2;
+            --success-color: #50C878;
+            --warning-color: #FFD700;
+            --danger-color: #FF6347;
+            --info-color: #20B2AA;
+            
+            --bg-light: #F9F9F9;
+            --bg-white: #FFFFFF;
+            --text-dark: #333333;
+            --text-light: #666666;
+            --text-muted: #999999;
+            
+            --border-color: #E0E0E0;
+            --shadow-light: 0 2px 10px rgba(0, 0, 0, 0.1);
+            --shadow-medium: 0 4px 20px rgba(0, 0, 0, 0.15);
+            --shadow-heavy: 0 8px 30px rgba(0, 0, 0, 0.2);
+            
+            --border-radius: 12px;
+            --border-radius-sm: 8px;
+            --border-radius-lg: 16px;
+            
+            --transition: all 0.3s ease;
+        }
+
+        /* Reset et base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.6;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+            transform: translateX(0);
+            transition: var(--transition);
+        }
+
+        .sidebar-header {
+            padding: 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .sidebar-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.25rem;
+            cursor: pointer;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 1rem 0;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 2rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: var(--transition);
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border-left-color: white;
+        }
+
+        .sidebar-footer {
+            padding: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 24px;
+            border: none;
+            border-radius: var(--border-radius-sm);
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: var(--transition);
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), #FF1493);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--text-dark);
+            border: 2px solid var(--border-color);
+        }
+
+        .btn-outline:hover {
+            background: var(--bg-white);
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .btn-full {
+            width: 100%;
+        }
+
+        .btn-icon {
+            padding: 12px;
+            border-radius: 50%;
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 12px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .top-bar {
+            background: var(--bg-white);
+            padding: 1rem 2rem;
+            box-shadow: var(--shadow-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            cursor: pointer;
+            color: var(--text-dark);
+        }
+
+        .top-bar h1 {
+            margin: 0;
+            font-size: 1.75rem;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Categories Content */
+        .categories-content {
+            padding: 2rem;
+        }
+
+        .add-category-card,
+        .categories-grid-card {
+            background: var(--bg-white);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-light);
+            margin-bottom: 2rem;
+        }
+
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-header h3 {
+            margin: 0;
+        }
+
+        .add-form {
+            padding: 1.5rem;
+            display: none;
+        }
+
+        .add-form.active {
+            display: block;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-dark);
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .radio {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .radio input {
+            display: none;
+        }
+
+        .radio-mark {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            position: relative;
+            transition: var(--transition);
+        }
+
+        .radio-mark.expense {
+            border-color: var(--danger-color);
+        }
+
+        .radio-mark.income {
+            border-color: var(--success-color);
+        }
+
+        .radio input:checked + .radio-mark {
+            border-width: 6px;
+        }
+
+        .radio input:checked + .radio-mark.expense {
+            border-color: var(--danger-color);
+        }
+
+        .radio input:checked + .radio-mark.income {
+            border-color: var(--success-color);
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            font-size: 14px;
+            transition: var(--transition);
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(255, 105, 180, 0.1);
+        }
+
+        .category-tabs {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .tab-button {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            color: var(--text-light);
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .tab-button.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .icon-selector,
+        .color-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .icon-button {
+            width: 40px;
+            height: 40px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            background: var(--bg-white);
+            font-size: 1.25rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .icon-button.active,
+        .icon-button:hover {
+            border-color: var(--primary-color);
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .color-button {
+            width: 30px;
+            height: 30px;
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .color-button.active {
+            border-color: var(--text-dark);
+            transform: scale(1.1);
+        }
+
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+            padding: 1.5rem;
+        }
+
+        .category-card {
+            background: var(--bg-white);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            padding: 1rem;
+            transition: var(--transition);
+        }
+
+        .category-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-light);
+        }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .category-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .category-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.25rem;
+        }
+
+        .category-name {
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .category-type {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+
+        .category-type.expense {
+            background: rgba(255, 99, 71, 0.1);
+            color: var(--danger-color);
+        }
+
+        .category-type.income {
+            background: rgba(80, 200, 120, 0.1);
+            color: var(--success-color);
+        }
+
+        .category-actions {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            
+            .sidebar-toggle {
+                display: block;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .categories-content {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <i class="fas fa-wallet"></i>
+                <span>ExpenseTracker</span>
+            </div>
+            <button class="sidebar-toggle" onclick="toggleSidebar()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="{% url 'dashboard' %}" class="nav-item">
+                <i class="fas fa-chart-line"></i>
+                <span>Tableau de bord</span>
+            </a>
+            <a href="{% url 'transactions' %}" class="nav-item{% if request.resolver_match.url_name == 'transactions' %} active{% endif %}">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Transactions</span>
+            </a>
+            <a href="{% url 'categories' %}" class="nav-item{% if request.resolver_match.url_name == 'categories' %} active{% endif %}">
+                <i class="fas fa-tags"></i>
+                <span>Catégories</span>
+            </a>
+            <a href="{% url 'budgets' %}" class="nav-item">
+                <i class="fas fa-piggy-bank"></i>
+                <span>Budgets</span>
+            </a>
+            <a href="{% url 'export' %}" class="nav-item">
+                <i class="fas fa-download"></i>
+                <span>Export</span>
+            </a>
+            <a href="{% url 'profile' %}" class="nav-item">
+                <i class="fas fa-user"></i>
+                <span>Profil</span>
+            </a>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <button class="btn btn-outline btn-full" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+                Déconnexion
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Top Bar -->
+        <header class="top-bar">
+            <button class="mobile-menu-btn" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h1>Catégories</h1>
+            <div class="user-menu">
+                <div class="user-avatar">
+                    <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face" alt="Avatar">
+                </div>
+                <span>Jean Dupont</span>
+            </div>
+        </header>
+
+        <!-- Categories Content -->
+        <div class="categories-content">
+            <!-- Add Category Form -->
+            <div class="add-category-card">
+                <div class="card-header">
+                    <h3>Ajouter une catégorie</h3>
+                    <button class="btn btn-icon" onclick="toggleAddCategoryForm()">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+                
+                <div class="add-form" id="addCategoryForm">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="categoryName">Nom de la catégorie</label>
+                                <input type="text" id="categoryName" name="categoryName" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Type</label>
+                                <div class="radio-group">
+                                    <label class="radio">
+                                        <input type="radio" name="categoryType" value="expense" checked>
+                                        <span class="radio-mark expense"></span>
+                                        Dépense
+                                    </label>
+                                    <label class="radio">
+                                        <input type="radio" name="categoryType" value="income">
+                                        <span class="radio-mark income"></span>
+                                        Revenu
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Icône</label>
+                                <input type="text" name="selectedIcon" id="selectedIcon" value="" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Couleur</label>
+                                <input type="color" name="selectedColor" id="selectedColor" value="#FF69B4" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary" name="add_category">
+                            <i class="fas fa-plus"></i>
+                            Ajouter la catégorie
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Categories Grid -->
+            <div class="categories-grid-card">
+                <div class="card-header">
+                    <h3>Mes catégories</h3>
+                    <div class="category-tabs">
+                        <a href="{% url 'categories' %}?type=all" class="tab-button {% if filter_type == 'all' %}active{% endif %}">Toutes</a>
+                        <a href="{% url 'categories' %}?type=expense" class="tab-button {% if filter_type == 'expense' %}active{% endif %}">Dépenses</a>
+                        <a href="{% url 'categories' %}?type=income" class="tab-button {% if filter_type == 'income' %}active{% endif %}">Revenus</a>
+                    </div>
+                </div>
+                
+                <div class="categories-grid" id="categoriesGrid">
+                    {% for cat in categories %}
+                    <div class="category-card">
+                        <div class="category-header">
+                            <div class="category-info">
+                                <div class="category-icon" style="background-color: {{ cat.color }}">
+                                    {{ cat.icon }}
+                                </div>
+                                <div>
+                                    <h4 class="category-name">{{ cat.name }}</h4>
+                                    <span class="category-type {{ cat.type }}">{{ cat.get_type_display }}</span>
+                                </div>
+                            </div>
+                            <div class="category-actions">
+                                <!-- Modifier (à faire en modal ou page dédiée si besoin) -->
+                                <form method="post" style="display:inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="category_id" value="{{ cat.id }}">
+                                    <button type="submit" name="delete_category" class="btn btn-icon btn-sm" title="Supprimer" onclick="return confirm('Supprimer cette catégorie ?')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p>Aucune catégorie.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Toggle add form
+        function toggleAddCategoryForm() {
+            const form = document.getElementById('addCategoryForm');
+            form.classList.toggle('active');
+            
+            if (form.classList.contains('active')) {
+                document.getElementById('categoryName').focus();
+            }
+        }
+
+        // Setup icon selector
+        function setupIconSelector() {
+            const iconButtons = document.querySelectorAll('.icon-button');
+            iconButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Remove active class from all buttons
+                    iconButtons.forEach(btn => btn.classList.remove('active'));
+                    
+                    // Add active class to clicked button
+                    this.classList.add('active');
+                    
+                    // Update hidden input
+                    const icon = this.dataset.icon;
+                    document.getElementById('selectedIcon').value = icon;
+                });
+            });
+        }
+
+        // Setup color selector
+        function setupColorSelector() {
+            const colorButtons = document.querySelectorAll('.color-button');
+            colorButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Remove active class from all buttons
+                    colorButtons.forEach(btn => btn.classList.remove('active'));
+                    
+                    // Add active class to clicked button
+                    this.classList.add('active');
+                    
+                    // Update hidden input
+                    const color = this.dataset.color;
+                    document.getElementById('selectedColor').value = color;
+                });
+            });
+        }
+
+        // Add category (front-end only)
+        function addCategory(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('categoryName').value;
+            const type = document.querySelector('input[name="categoryType"]:checked').value;
+            const icon = document.getElementById('selectedIcon').value;
+            const color = document.getElementById('selectedColor').value;
+            
+            if (!name.trim()) {
+                alert('Veuillez entrer un nom pour la catégorie');
+                return;
+            }
+            
+            // Simulate adding category
+            alert('Catégorie ajoutée avec succès !');
+            
+            // Reset form
+            event.target.reset();
+            document.getElementById('selectedIcon').value = '🍽️';
+            document.getElementById('selectedColor').value = '#FF69B4';
+            
+            // Reset selectors
+            document.querySelectorAll('.icon-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.color-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelector('.icon-button[data-icon="🍽️"]').classList.add('active');
+            document.querySelector('.color-button[data-color="#FF69B4"]').classList.add('active');
+            
+            toggleAddCategoryForm();
+        }
+
+        // Filter categories
+        function filterCategories(type) {
+            // Update tab buttons
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Simulate filtering
+            console.log('Filtrage par type:', type);
+        }
+
+        // Toggle sidebar
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('active');
+        }
+
+        // Logout function
+        function logout() {
+            if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
+                window.location.href = 'index.html';
+            }
+        }
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            setupIconSelector();
+            setupColorSelector();
+            
+            // Add click outside to close sidebar on mobile
+            document.addEventListener('click', function(e) {
+                const sidebar = document.getElementById('sidebar');
+                const menuBtn = document.querySelector('.mobile-menu-btn');
+                
+                if (window.innerWidth <= 768 && 
+                    !sidebar.contains(e.target) && 
+                    !menuBtn.contains(e.target) && 
+                    sidebar.classList.contains('active')) {
+                    sidebar.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Export - ExpenseTracker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Variables CSS */
+        :root {
+            --primary-color: #FF69B4;
+            --secondary-color: #4A90E2;
+            --success-color: #50C878;
+            --warning-color: #FFD700;
+            --danger-color: #FF6347;
+            --info-color: #20B2AA;
+            
+            --bg-light: #F9F9F9;
+            --bg-white: #FFFFFF;
+            --text-dark: #333333;
+            --text-light: #666666;
+            --text-muted: #999999;
+            
+            --border-color: #E0E0E0;
+            --shadow-light: 0 2px 10px rgba(0, 0, 0, 0.1);
+            --shadow-medium: 0 4px 20px rgba(0, 0, 0, 0.15);
+            --shadow-heavy: 0 8px 30px rgba(0, 0, 0, 0.2);
+            
+            --border-radius: 12px;
+            --border-radius-sm: 8px;
+            --border-radius-lg: 16px;
+            
+            --transition: all 0.3s ease;
+        }
+
+        /* Reset et base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.6;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+            transform: translateX(0);
+            transition: var(--transition);
+        }
+
+        .sidebar-header {
+            padding: 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .sidebar-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.25rem;
+            cursor: pointer;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 1rem 0;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 2rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: var(--transition);
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border-left-color: white;
+        }
+
+        .sidebar-footer {
+            padding: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 24px;
+            border: none;
+            border-radius: var(--border-radius-sm);
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: var(--transition);
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), #FF1493);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--text-dark);
+            border: 2px solid var(--border-color);
+        }
+
+        .btn-outline:hover {
+            background: var(--bg-white);
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .btn-full {
+            width: 100%;
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 12px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .top-bar {
+            background: var(--bg-white);
+            padding: 1rem 2rem;
+            box-shadow: var(--shadow-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            cursor: pointer;
+            color: var(--text-dark);
+        }
+
+        .top-bar h1 {
+            margin: 0;
+            font-size: 1.75rem;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Export Content */
+        .export-content {
+            padding: 2rem;
+        }
+
+        .quick-export-card,
+        .custom-export-card {
+            background: var(--bg-white);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-light);
+            margin-bottom: 2rem;
+        }
+
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-header h3 {
+            margin: 0;
+        }
+
+        .card-header p {
+            margin: 0;
+            color: var(--text-light);
+            font-size: 0.875rem;
+        }
+
+        .quick-export-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            padding: 1.5rem;
+        }
+
+        .export-option {
+            text-align: center;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            transition: var(--transition);
+        }
+
+        .export-option:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-light);
+        }
+
+        .export-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 1rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .export-option h4 {
+            margin-bottom: 0.5rem;
+        }
+
+        .export-option p {
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+            color: var(--text-light);
+        }
+
+        .export-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .custom-export-form {
+            padding: 1.5rem;
+        }
+
+        .form-section {
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .form-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .form-section h4 {
+            margin-bottom: 1rem;
+            color: var(--text-dark);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-dark);
+        }
+
+        select,
+        input[type="date"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            font-size: 14px;
+            transition: var(--transition);
+        }
+
+        select:focus,
+        input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(255, 105, 180, 0.1);
+        }
+
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .checkbox input {
+            display: none;
+        }
+
+        .checkmark {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            position: relative;
+            transition: var(--transition);
+        }
+
+        .checkbox input:checked + .checkmark {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .checkbox input:checked + .checkmark::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .format-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+
+        .radio-card {
+            display: block;
+            cursor: pointer;
+        }
+
+        .radio-card input {
+            display: none;
+        }
+
+        .radio-card-content {
+            padding: 1.5rem;
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            text-align: center;
+            transition: var(--transition);
+        }
+
+        .radio-card input:checked + .radio-card-content {
+            border-color: var(--primary-color);
+            background: rgba(255, 105, 180, 0.05);
+        }
+
+        .radio-card-content i {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+
+        .radio-card-content h5 {
+            margin-bottom: 0.5rem;
+        }
+
+        .radio-card-content p {
+            margin: 0;
+            font-size: 0.875rem;
+            color: var(--text-light);
+        }
+
+        .export-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            
+            .sidebar-toggle {
+                display: block;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .export-content {
+                padding: 1rem;
+            }
+            
+            .export-buttons {
+                flex-direction: column;
+            }
+            
+            .format-options {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <i class="fas fa-wallet"></i>
+                <span>ExpenseTracker</span>
+            </div>
+            <button class="sidebar-toggle" onclick="toggleSidebar()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" class="nav-item">
+                <i class="fas fa-chart-line"></i>
+                <span>Tableau de bord</span>
+            </a>
+            <a href="transactions.html" class="nav-item">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Transactions</span>
+            </a>
+            <a href="categories.html" class="nav-item">
+                <i class="fas fa-tags"></i>
+                <span>Catégories</span>
+            </a>
+            <a href="budgets.html" class="nav-item">
+                <i class="fas fa-piggy-bank"></i>
+                <span>Budgets</span>
+            </a>
+            <a href="search.html" class="nav-item">
+                <i class="fas fa-search"></i>
+                <span>Recherche</span>
+            </a>
+            <a href="export.html" class="nav-item active">
+                <i class="fas fa-download"></i>
+                <span>Export</span>
+            </a>
+            <a href="profile.html" class="nav-item">
+                <i class="fas fa-user"></i>
+                <span>Profil</span>
+            </a>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <button class="btn btn-outline btn-full" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+                Déconnexion
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Top Bar -->
+        <header class="top-bar">
+            <button class="mobile-menu-btn" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h1>Export des données</h1>
+            <div class="user-menu">
+                <div class="user-avatar">
+                    <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face" alt="Avatar">
+                </div>
+                <span>Jean Dupont</span>
+            </div>
+        </header>
+
+        <!-- Export Content -->
+        <div class="export-content">
+            <!-- Quick Export Options -->
+            <div class="quick-export-card">
+                <div class="card-header">
+                    <div>
+                        <h3>Exports rapides</h3>
+                        <p>Téléchargez vos données en un clic</p>
+                    </div>
+                </div>
+                
+                <div class="quick-export-grid">
+                    <div class="export-option">
+                        <div class="export-icon">
+                            <i class="fas fa-calendar-month"></i>
+                        </div>
+                        <h4>Ce mois</h4>
+                        <p>Toutes les transactions du mois en cours</p>
+                        <div class="export-buttons">
+                            <button class="btn btn-outline btn-sm" onclick="quickExport('month', 'pdf')">
+                                <i class="fas fa-file-pdf"></i>
+                                PDF
+                            </button>
+                            <button class="btn btn-outline btn-sm" onclick="quickExport('month', 'excel')">
+                                <i class="fas fa-file-excel"></i>
+                                Excel
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="export-option">
+                        <div class="export-icon">
+                            <i class="fas fa-calendar-year"></i>
+                        </div>
+                        <h4>Cette année</h4>
+                        <p>Rapport annuel complet avec statistiques</p>
+                        <div class="export-buttons">
+                            <button class="btn btn-outline btn-sm" onclick="quickExport('year', 'pdf')">
+                                <i class="fas fa-file-pdf"></i>
+                                PDF
+                            </button>
+                            <button class="btn btn-outline btn-sm" onclick="quickExport('year', 'excel')">
+                                <i class="fas fa-file-excel"></i>
+                                Excel
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="export-option">
+                        <div class="export-icon">
+                            <i class="fas fa-database"></i>
+                        </div>
+                        <h4>Toutes les données</h4>
+                        <p>Export complet de toutes vos données</p>
+                        <div class="export-buttons">
+                            <button class="btn btn-outline btn-sm" onclick="quickExport('all', 'pdf')">
+                                <i class="fas fa-file-pdf"></i>
+                                PDF
+                            </button>
+                            <button class="btn btn-outline btn-sm" onclick="quickExport('all', 'excel')">
+                                <i class="fas fa-file-excel"></i>
+                                Excel
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="export-option">
+                        <div class="export-icon">
+                            <i class="fas fa-tags"></i>
+                        </div>
+                        <h4>Par catégorie</h4>
+                        <p>Analyse détaillée par catégorie de dépenses</p>
+                        <div class="export-buttons">
+                            <button class="btn btn-outline btn-sm" onclick="quickExport('category', 'pdf')">
+                                <i class="fas fa-file-pdf"></i>
+                                PDF
+                            </button>
+                            <button class="btn btn-outline btn-sm" onclick="quickExport('category', 'excel')">
+                                <i class="fas fa-file-excel"></i>
+                                Excel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Custom Export -->
+            <div class="custom-export-card">
+                <div class="card-header">
+                    <div>
+                        <h3>Export personnalisé</h3>
+                        <p>Configurez votre export selon vos besoins</p>
+                    </div>
+                </div>
+                
+                <form class="custom-export-form" onsubmit="customExport(event)">
+                    <div class="form-section">
+                        <h4>Période</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Type de période</label>
+                                <select id="periodType" onchange="updatePeriodOptions()">
+                                    <option value="custom">Période personnalisée</option>
+                                    <option value="month">Mois spécifique</option>
+                                    <option value="quarter">Trimestre</option>
+                                    <option value="year">Année</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row" id="customPeriod">
+                            <div class="form-group">
+                                <label for="startDate">Date de début</label>
+                                <input type="date" id="startDate">
+                            </div>
+                            <div class="form-group">
+                                <label for="endDate">Date de fin</label>
+                                <input type="date" id="endDate">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h4>Données à inclure</h4>
+                        <div class="checkbox-grid">
+                            <label class="checkbox">
+                                <input type="checkbox" id="includeTransactions" checked>
+                                <span class="checkmark"></span>
+                                Transactions
+                            </label>
+                            <label class="checkbox">
+                                <input type="checkbox" id="includeBudgets">
+                                <span class="checkmark"></span>
+                                Budgets
+                            </label>
+                            <label class="checkbox">
+                                <input type="checkbox" id="includeCategories">
+                                <span class="checkmark"></span>
+                                Catégories
+                            </label>
+                            <label class="checkbox">
+                                <input type="checkbox" id="includeStatistics" checked>
+                                <span class="checkmark"></span>
+                                Statistiques
+                            </label>
+                            <label class="checkbox">
+                                <input type="checkbox" id="includeCharts">
+                                <span class="checkmark"></span>
+                                Graphiques
+                            </label>
+                            <label class="checkbox">
+                                <input type="checkbox" id="includeSummary" checked>
+                                <span class="checkmark"></span>
+                                Résumé exécutif
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h4>Format d'export</h4>
+                        <div class="format-options">
+                            <label class="radio-card">
+                                <input type="radio" name="exportFormat" value="pdf" checked>
+                                <div class="radio-card-content">
+                                    <i class="fas fa-file-pdf"></i>
+                                    <h5>PDF</h5>
+                                    <p>Rapport formaté avec graphiques</p>
+                                </div>
+                            </label>
+                            <label class="radio-card">
+                                <input type="radio" name="exportFormat" value="excel">
+                                <div class="radio-card-content">
+                                    <i class="fas fa-file-excel"></i>
+                                    <h5>Excel</h5>
+                                    <p>Données brutes pour analyse</p>
+                                </div>
+                            </label>
+                            <label class="radio-card">
+                                <input type="radio" name="exportFormat" value="csv">
+                                <div class="radio-card-content">
+                                    <i class="fas fa-file-csv"></i>
+                                    <h5>CSV</h5>
+                                    <p>Format universel</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="export-actions">
+                        <button type="button" class="btn btn-outline" onclick="previewExport()">
+                            <i class="fas fa-eye"></i>
+                            Aperçu
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-download"></i>
+                            Générer l'export
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Quick export
+        function quickExport(type, format) {
+            alert(`Export ${type} en format ${format.toUpperCase()} généré !`);
+            
+            // Simulate download
+            const link = document.createElement('a');
+            link.href = '#';
+            link.download = `export-${type}-${new Date().toISOString().split('T')[0]}.${format}`;
+            link.textContent = `Export ${type}`;
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Update period options
+        function updatePeriodOptions() {
+            const periodType = document.getElementById('periodType').value;
+            const customPeriod = document.getElementById('customPeriod');
+            
+            if (periodType === 'custom') {
+                customPeriod.style.display = 'grid';
+            } else {
+                customPeriod.style.display = 'none';
+            }
+        }
+
+        // Custom export
+        function customExport(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            const exportData = {
+                periodType: formData.get('periodType'),
+                startDate: formData.get('startDate'),
+                endDate: formData.get('endDate'),
+                includeTransactions: formData.get('includeTransactions') === 'on',
+                includeBudgets: formData.get('includeBudgets') === 'on',
+                includeCategories: formData.get('includeCategories') === 'on',
+                includeStatistics: formData.get('includeStatistics') === 'on',
+                includeCharts: formData.get('includeCharts') === 'on',
+                includeSummary: formData.get('includeSummary') === 'on',
+                format: formData.get('exportFormat')
+            };
+            
+            // Validate required fields
+            if (exportData.periodType === 'custom' && (!exportData.startDate || !exportData.endDate)) {
+                alert('Veuillez sélectionner une période');
+                return;
+            }
+            
+            alert('Export personnalisé généré avec succès !');
+            
+            // Simulate download
+            const link = document.createElement('a');
+            link.href = '#';
+            link.download = `export-personnalise-${new Date().toISOString().split('T')[0]}.${exportData.format}`;
+            link.textContent = 'Export personnalisé';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Preview export
+        function previewExport() {
+            alert('Aperçu de l\'export généré');
+        }
+
+        // Toggle sidebar
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('active');
+        }
+
+        // Logout function
+        function logout() {
+            if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
+                window.location.href = 'index.html';
+            }
+        }
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set default dates
+            const now = new Date();
+            const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+            const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+            
+            document.getElementById('startDate').value = firstDay.toISOString().split('T')[0];
+            document.getElementById('endDate').value = lastDay.toISOString().split('T')[0];
+            
+            // Add click outside to close sidebar on mobile
+            document.addEventListener('click', function(e) {
+                const sidebar = document.getElementById('sidebar');
+                const menuBtn = document.querySelector('.mobile-menu-btn');
+                
+                if (window.innerWidth <= 768 && 
+                    !sidebar.contains(e.target) && 
+                    !menuBtn.contains(e.target) && 
+                    sidebar.classList.contains('active')) {
+                    sidebar.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

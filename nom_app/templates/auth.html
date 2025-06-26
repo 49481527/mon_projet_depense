@@ -1,0 +1,311 @@
+<!-- filepath: d:\COURS M1 MIAGE 2024-2023\projet_web\nom_app\templates\auth.html -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion - ExpenseTracker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #FF69B4;
+            --secondary-color: #4A90E2;
+            --success-color: #50C878;
+            --warning-color: #FFD700;
+            --danger-color: #FF6347;
+            --info-color: #20B2AA;
+            --bg-light: #F9F9F9;
+            --bg-white: #FFFFFF;
+            --text-dark: #333333;
+            --text-light: #666666;
+            --text-muted: #999999;
+            --border-color: #E0E0E0;
+            --shadow-light: 0 2px 10px rgba(0, 0, 0, 0.1);
+            --shadow-medium: 0 4px 20px rgba(0, 0, 0, 0.15);
+            --shadow-heavy: 0 8px 30px rgba(0, 0, 0, 0.2);
+            --border-radius: 12px;
+            --border-radius-sm: 8px;
+            --border-radius-lg: 16px;
+            --transition: all 0.3s ease;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .auth-container { width: 100%; max-width: 450px; }
+        .auth-card {
+            background: var(--bg-white);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-heavy);
+            overflow: hidden;
+        }
+        .auth-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            padding: 2rem;
+            text-align: center;
+        }
+        .auth-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+        }
+        .auth-form { padding: 2rem; display: none; }
+        .auth-form.active { display: block; animation: slideIn 0.3s ease-out; }
+        .auth-form h2 { margin-bottom: 0.5rem; color: var(--text-dark); }
+        .auth-form p { margin-bottom: 2rem; color: var(--text-light); }
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text-dark); }
+        .input-group { position: relative; display: flex; align-items: center; }
+        .input-group i { position: absolute; left: 12px; color: var(--text-muted); z-index: 2; }
+        .input-group input {
+            width: 100%; padding: 12px 12px 12px 40px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            font-size: 14px; transition: var(--transition);
+        }
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(255, 105, 180, 0.1);
+        }
+        .password-toggle {
+            position: absolute; right: 12px; background: none; border: none;
+            color: var(--text-muted); cursor: pointer; padding: 4px; z-index: 2;
+        }
+        .form-options {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;
+        }
+        .checkbox { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; }
+        .checkbox input { display: none; }
+        .checkmark {
+            width: 18px; height: 18px; border: 2px solid var(--border-color);
+            border-radius: 4px; position: relative; transition: var(--transition);
+        }
+        .checkbox input:checked + .checkmark {
+            background: var(--primary-color); border-color: var(--primary-color);
+        }
+        .checkbox input:checked + .checkmark::after {
+            content: '✓'; position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); color: white; font-size: 12px; font-weight: bold;
+        }
+        .forgot-password { color: var(--primary-color); text-decoration: none; font-size: 14px; }
+        .forgot-password:hover { text-decoration: underline; }
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            padding: 12px 24px; border: none; border-radius: var(--border-radius-sm);
+            font-size: 14px; font-weight: 500; text-decoration: none; cursor: pointer;
+            transition: var(--transition); gap: 8px; width: 100%;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), #FF1493);
+            color: white;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: var(--shadow-medium); }
+        .auth-switch { text-align: center; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); }
+        .auth-switch a { color: var(--primary-color); text-decoration: none; font-weight: 500; }
+        .auth-switch a:hover { text-decoration: underline; }
+        .password-strength { margin-top: 0.5rem; }
+        .strength-bar { height: 4px; background: var(--border-color); border-radius: 2px; overflow: hidden; margin-bottom: 0.25rem; }
+        .strength-fill { height: 100%; background: var(--danger-color); width: 0%; transition: var(--transition); }
+        .strength-text { font-size: 12px; color: var(--text-muted); }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @media (max-width: 480px) { .auth-card { margin: 10px; } }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-logo">
+                    <i class="fas fa-wallet"></i>
+                    <span>ExpenseTracker</span>
+                </div>
+            </div>
+
+    
+
+            <!-- Formulaire de connexion -->
+            <div id="loginForm" class="auth-form active">
+                <h2>Se connecter</h2>
+                <p>Accédez à votre tableau de bord financier</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="loginEmail">Email</label>
+                        <div class="input-group">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" id="loginEmail" name="loginEmail" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Mot de passe</label>
+                        <div class="input-group">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="loginPassword" name="loginPassword" required>
+                            <button type="button" class="password-toggle" onclick="togglePassword('loginPassword')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary" name="login">Se connecter</button>
+                </form>
+                <div class="auth-switch">
+                    <p>Pas encore de compte ? 
+                        <a href="#" onclick="switchToRegister()">S'inscrire</a>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Formulaire d'inscription -->
+            <div id="registerForm" class="auth-form">
+                <h2>Créer un compte</h2>
+                <p>Commencez à gérer vos finances dès aujourd'hui</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="registerName">Nom complet</label>
+                        <div class="input-group">
+                            <i class="fas fa-user"></i>
+                            <input type="text" id="registerName" name="registerName" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerEmail">Email</label>
+                        <div class="input-group">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" id="registerEmail" name="registerEmail" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerPassword">Mot de passe</label>
+                        <div class="input-group">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="registerPassword" name="registerPassword" required>
+                            <button type="button" class="password-toggle" onclick="togglePassword('registerPassword')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="password-strength">
+                            <div class="strength-bar">
+                                <div class="strength-fill"></div>
+                            </div>
+                            <span class="strength-text">Faible</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirmer le mot de passe</label>
+                        <div class="input-group">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="confirmPassword" name="confirmPassword" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary" name="register">Créer mon compte</button>
+                </form>
+                <div class="auth-switch">
+                    <p>Déjà un compte ? 
+                        <a href="#" onclick="switchToLogin()">Se connecter</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Switch between login and register forms
+        function switchToLogin() {
+            document.getElementById('loginForm').classList.add('active');
+            document.getElementById('registerForm').classList.remove('active');
+        }
+        function switchToRegister() {
+            document.getElementById('loginForm').classList.remove('active');
+            document.getElementById('registerForm').classList.add('active');
+        }
+
+        // Toggle password visibility
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            const button = input.parentElement.querySelector('.password-toggle');
+            const icon = button.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fas fa-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'fas fa-eye';
+            }
+        }
+
+        // Password strength checker
+        function checkPasswordStrength(password) {
+            let strength = 0;
+            let feedback = 'Faible';
+            if (password.length >= 8) strength += 1;
+            if (password.length >= 12) strength += 1;
+            if (/[a-z]/.test(password)) strength += 1;
+            if (/[A-Z]/.test(password)) strength += 1;
+            if (/[0-9]/.test(password)) strength += 1;
+            if (/[^A-Za-z0-9]/.test(password)) strength += 1;
+            if (strength >= 5) {
+                feedback = 'Très forte';
+            } else if (strength >= 4) {
+                feedback = 'Forte';
+            } else if (strength >= 3) {
+                feedback = 'Moyenne';
+            } else if (strength >= 2) {
+                feedback = 'Faible';
+            } else {
+                feedback = 'Très faible';
+            }
+            return { strength, feedback };
+        }
+
+        // Update password strength indicator
+        function updatePasswordStrength() {
+            const passwordInput = document.getElementById('registerPassword');
+            const strengthBar = document.querySelector('.strength-fill');
+            const strengthText = document.querySelector('.strength-text');
+            if (!passwordInput || !strengthBar || !strengthText) return;
+            const password = passwordInput.value;
+            const { strength, feedback } = checkPasswordStrength(password);
+            const percentage = (strength / 6) * 100;
+            strengthBar.style.width = `${percentage}%`;
+            if (strength >= 5) {
+                strengthBar.style.backgroundColor = '#50C878';
+            } else if (strength >= 4) {
+                strengthBar.style.backgroundColor = '#20B2AA';
+            } else if (strength >= 3) {
+                strengthBar.style.backgroundColor = '#FFD700';
+            } else {
+                strengthBar.style.backgroundColor = '#FF6347';
+            }
+            strengthText.textContent = feedback;
+        }
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check URL hash for register form
+            if (window.location.hash === '#register') {
+                switchToRegister();
+            }
+            // Add password strength checker
+            const registerPassword = document.getElementById('registerPassword');
+            if (registerPassword) {
+                registerPassword.addEventListener('input', updatePasswordStrength);
+            }
+        });
+    </script>
+</body>
+</html>
