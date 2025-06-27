@@ -306,6 +306,20 @@
                 registerPassword.addEventListener('input', updatePasswordStrength);
             }
         });
+
+        // Bloque le retour arrière après déconnexion
+        if (window.history && window.history.pushState) {
+            window.history.pushState(null, "", window.location.href);
+            window.onpopstate = function () {
+                window.history.pushState(null, "", window.location.href);
+            };
+        }
+
+          function logout() {
+            // Logique de déconnexion
+            alert('Déconnexion réussie !');
+            window.location.href = '/auth/'; // Rediriger vers la page de connexion
+        }
     </script>
 </body>
 </html>

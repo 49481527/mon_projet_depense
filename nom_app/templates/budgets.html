@@ -563,37 +563,32 @@
                 <i class="fas fa-times"></i>
             </button>
         </div>
-        
-        <nav class="sidebar-nav">
-            <a href="dashboard.html" class="nav-item">
-                <i class="fas fa-chart-line"></i>
-                <span>Tableau de bord</span>
-            </a>
-            <a href="transactions.html" class="nav-item">
-                <i class="fas fa-exchange-alt"></i>
-                <span>Transactions</span>
-            </a>
-            <a href="categories.html" class="nav-item">
-                <i class="fas fa-tags"></i>
-                <span>Catégories</span>
-            </a>
-            <a href="{% url 'budgets' %}" class="nav-item active">
-                <i class="fas fa-piggy-bank"></i>
-                <span>Budgets</span>
-            </a>
-            <a href="search.html" class="nav-item">
-                <i class="fas fa-search"></i>
-                <span>Recherche</span>
-            </a>
-            <a href="export.html" class="nav-item">
-                <i class="fas fa-download"></i>
-                <span>Export</span>
-            </a>
-            <a href="profile.html" class="nav-item">
-                <i class="fas fa-user"></i>
-                <span>Profil</span>
-            </a>
-        </nav>
+       <nav class="sidebar-nav">
+    <a href="{% url 'dashboard' %}" class="nav-item">
+        <i class="fas fa-chart-line"></i>
+        <span>Tableau de bord</span>
+    </a>
+    <a href="{% url 'transactions' %}" class="nav-item">
+        <i class="fas fa-exchange-alt"></i>
+        <span>Transactions</span>
+    </a>
+    <a href="{% url 'categories' %}" class="nav-item">
+        <i class="fas fa-tags"></i>
+        <span>Catégories</span>
+    </a>
+    <a href="{% url 'budgets' %}" class="nav-item">
+        <i class="fas fa-piggy-bank"></i>
+        <span>Budgets</span>
+    </a>
+    <a href="{% url 'export' %}" class="nav-item">
+        <i class="fas fa-download"></i>
+        <span>Export</span>
+    </a>
+    <a href="{% url 'profile' %}" class="nav-item active">
+        <i class="fas fa-user"></i>
+        <span>Profil</span>
+    </a>
+</nav>
         
         <div class="sidebar-footer">
             <button class="btn btn-outline btn-full" onclick="logout()">
@@ -835,7 +830,7 @@
         function logout() {
             // Logique de déconnexion
             alert('Déconnexion réussie !');
-            window.location.href = 'login.html'; // Rediriger vers la page de connexion
+            window.location.href = '/auth/'; // Rediriger vers la page de connexion
         }
     </script>
 </body>

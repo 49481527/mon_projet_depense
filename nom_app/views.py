@@ -4,10 +4,12 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from django.views.decorators.cache import never_cache
 from django.contrib.auth.decorators import login_required
-from .models import Transaction, Budget, Category
-from datetime import date, timedelta
 from django.db.models import Sum
+from datetime import date, timedelta
+from .models import Transaction, Category, Budget
 from django.utils import timezone
+from django.shortcuts import get_object_or_404, redirect, render
+from .models import Category
 
 def auth_view(request):
     if request.method == 'POST':
@@ -38,7 +40,68 @@ def auth_view(request):
 @never_cache
 @login_required
 def dashboard_view(request):
-    return render(request, 'dashboard.html', {'user': request.user})
+    user = request.user
+    today = date.today()
+
+    # Revenus et dépenses du mois en cours
+    transactions = Transaction.objects.filter(user=user, date__year=today.year, date__month=today.month)
+    total_income = transactions.filter(type='income').aggregate(total=Sum('amount'))['total'] or 0
+    total_expenses = transactions.filter(type='expense').aggregate(total=Sum('amount'))['total'] or 0
+
+    # Solde actuel (toutes transactions)
+    all_transactions = Transaction.objects.filter(user=user)
+    total_balance = (all_transactions.filter(type='income').aggregate(total=Sum('amount'))['total'] or 0) - \
+                    (all_transactions.filter(type='expense').aggregate(total=Sum('amount'))['total'] or 0)
+
+    # Budget restant (somme des budgets - dépenses du mois)
+    total_budget = Budget.objects.filter(user=user).aggregate(total=Sum('amount'))['total'] or 0
+    budget_remaining = total_budget - total_expenses
+    budget_used_percent = int((total_expenses / total_budget) * 100) if total_budget else 0
+
+    # Transactions récentes (exemple : 5 dernières)
+    recent_transactions = Transaction.objects.filter(user=user).order_by('-date')[:5]
+
+    # Dépenses par catégorie (ce mois)
+    categories = Category.objects.filter(user=user, type='expense')
+    category_labels = []
+    category_data = []
+    for cat in categories:
+        total = Transaction.objects.filter(
+            user=user,
+            type='expense',
+            category=cat,
+            date__year=today.year,
+            date__month=today.month
+        ).aggregate(total=Sum('amount'))['total'] or 0
+        category_labels.append(cat.name)
+        category_data.append(float(total))
+
+    # Évolution des dépenses sur les 7 derniers jours
+    trend_labels = []
+    trend_data = []
+    for i in range(6, -1, -1):
+        day = today - timedelta(days=i)
+        total = Transaction.objects.filter(
+            user=user,
+            type='expense',
+            date=day
+        ).aggregate(total=Sum('amount'))['total'] or 0
+        trend_labels.append(day.strftime('%a %d/%m'))
+        trend_data.append(float(total))
+
+    context = {
+        'total_balance': total_balance,
+        'total_income': total_income,
+        'total_expenses': total_expenses,
+        'budget_remaining': budget_remaining,
+        'budget_used_percent': budget_used_percent,
+        'recent_transactions': recent_transactions,
+        'category_labels': category_labels,
+        'category_data': category_data,
+        'trend_labels': trend_labels,
+        'trend_data': trend_data,
+    }
+    return render(request, 'dashboard.html', context)
 
 def index_view(request):
     return render(request, 'index.html')
@@ -129,10 +192,10 @@ def transaction_view(request):
 
     # Suppression
     if request.method == 'POST' and 'delete_transaction' in request.POST:
-        transaction_id = request.POST.get('transaction_id')
-        transaction = get_object_or_404(Transaction, id=transaction_id, user=request.user)
-        transaction.delete()
+        transaction_id = request.POST.get('delete_transaction')
+        Transaction.objects.filter(id=transaction_id, user=request.user).delete()
         messages.success(request, "Transaction supprimée avec succès !")
+        return redirect('transactions')
 
     # Filtres (inchangé)
     transactions = Transaction.objects.filter(user=request.user)
@@ -301,4 +364,57 @@ def profile_view(request):
 
 def logout_view(request):
     logout(request)
-    return redirect('auth')
+    return redirect('auth')  # ou le nom de ta route de connexion
+
+@never_cache
+@login_required
+def categories_view(request):
+    # Ajout
+    if request.method == 'POST' and 'add_category' in request.POST:
+        name = request.POST.get('categoryName')
+        type = request.POST.get('categoryType')
+        icon = request.POST.get('selectedIcon')
+        color = request.POST.get('selectedColor')
+        if not name or not type or not icon or not color:
+            messages.error(request, "Veuillez remplir tous les champs.")
+        else:
+            Category.objects.create(
+                user=request.user,
+                name=name,
+                type=type,
+                icon=icon,
+                color=color
+            )
+            messages.success(request, "Catégorie ajoutée avec succès !")
+    # Suppression
+    if request.method == 'POST' and 'delete_category' in request.POST:
+        cat_id = request.POST.get('category_id')
+        cat = Category.objects.filter(id=cat_id, user=request.user).first()
+        if cat:
+            cat.delete()
+            messages.success(request, "Catégorie supprimée.")
+    # Modification (pour le modal)
+    if request.method == 'POST' and 'save_edit_category' in request.POST:
+        cat_id = request.POST.get('edit_category_id')
+        name = request.POST.get('edit_category_name')
+        type = request.POST.get('edit_category_type')
+        icon = request.POST.get('edit_category_icon')
+        color = request.POST.get('edit_category_color')
+        cat = Category.objects.filter(id=cat_id, user=request.user).first()
+        if cat:
+            cat.name = name
+            cat.type = type
+            cat.icon = icon
+            cat.color = color
+            cat.save()
+            messages.success(request, "Catégorie modifiée avec succès !")
+        else:
+            messages.error(request, "Catégorie introuvable.")
+        return redirect('categories')
+    # Filtrage
+    filter_type = request.GET.get('type', 'all')
+    categories = Category.objects.filter(user=request.user)
+    if filter_type in ['expense', 'income']:
+        categories = categories.filter(type=filter_type)
+    categories = categories.order_by('name')
+    return render(request, 'categories.html', {'categories': categories, 'filter_type': filter_type})

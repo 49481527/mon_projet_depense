@@ -471,6 +471,11 @@
             gap: 0.25rem;
         }
 
+        /* Modal Styles */
+        .modal { position: fixed; z-index: 9999; left: 0; top: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; }
+        .modal-content { background: #fff; border-radius: 12px; padding: 2rem; position: relative; }
+        .close { position: absolute; right: 1rem; top: 1rem; font-size: 1.5rem; cursor: pointer; }
+
         /* Responsive Design */
         @media (max-width: 768px) {
             .sidebar {
@@ -647,7 +652,12 @@
                                 </div>
                             </div>
                             <div class="category-actions">
-                                <!-- Modifier (à faire en modal ou page dédiée si besoin) -->
+                                <!-- Bouton Modifier -->
+                                <button class="btn btn-icon btn-sm" title="Modifier"
+                                        onclick="openEditCategoryModal('{{ cat.id }}', '{{ cat.name }}', '{{ cat.type }}', '{{ cat.icon }}', '{{ cat.color }}')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <!-- Bouton Supprimer -->
                                 <form method="post" style="display:inline;">
                                     {% csrf_token %}
                                     <input type="hidden" name="category_id" value="{{ cat.id }}">
@@ -665,6 +675,49 @@
             </div>
         </div>
     </main>
+
+    <!-- Modal de modification de catégorie -->
+    <div id="editCategoryModal" class="modal" style="display:none;">
+        <div class="modal-content" style="max-width:400px;">
+            <span class="close" onclick="closeEditCategoryModal()">&times;</span>
+            <h3>Modifier la catégorie</h3>
+            <form method="post" id="editCategoryForm">
+                {% csrf_token %}
+                <input type="hidden" name="edit_category_id" id="edit_category_id">
+                <div class="form-group">
+                    <label for="edit_category_name">Nom de la catégorie</label>
+                    <input type="text" id="edit_category_name" name="edit_category_name" required>
+                </div>
+                <div class="form-group">
+                    <label>Type</label>
+                    <div class="radio-group">
+                        <label class="radio">
+                            <input type="radio" name="edit_category_type" value="expense" id="edit_type_expense">
+                            <span class="radio-mark expense"></span>
+                            Dépense
+                        </label>
+                        <label class="radio">
+                            <input type="radio" name="edit_category_type" value="income" id="edit_type_income">
+                            <span class="radio-mark income"></span>
+                            Revenu
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="edit_category_icon">Icône</label>
+                    <input type="text" id="edit_category_icon" name="edit_category_icon" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit_category_color">Couleur</label>
+                    <input type="color" id="edit_category_color" name="edit_category_color" required>
+                </div>
+                <button type="submit" class="btn btn-primary" name="save_edit_category">
+                    <i class="fas fa-save"></i>
+                    Enregistrer
+                </button>
+            </form>
+        </div>
+    </div>
 
     <script>
         // Toggle add form
@@ -789,6 +842,28 @@
                 }
             });
         });
+        
+        function logout() {
+            // Logique de déconnexion
+            alert('Déconnexion réussie !');
+            window.location.href = '/auth/'; // Rediriger vers la page de connexion
+        }
+
+        // Open edit category modal
+        function openEditCategoryModal(id, name, type, icon, color) {
+            document.getElementById('editCategoryModal').style.display = 'flex';
+            document.getElementById('edit_category_id').value = id;
+            document.getElementById('edit_category_name').value = name;
+            document.getElementById('edit_category_icon').value = icon;
+            document.getElementById('edit_category_color').value = color;
+            document.getElementById('edit_type_expense').checked = (type === 'expense');
+            document.getElementById('edit_type_income').checked = (type === 'income');
+        }
+
+        // Close edit category modal
+        function closeEditCategoryModal() {
+            document.getElementById('editCategoryModal').style.display = 'none';
+        }
     </script>
 </body>
 </html>

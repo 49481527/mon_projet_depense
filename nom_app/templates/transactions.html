@@ -628,7 +628,7 @@
                             <div class="form-group">
                                 <label for="amount">Montant (F CFA)</label>
                                 <div class="input-group">
-                                    <i class="fas fa-euro-sign"></i>
+                        
                                     <input type="number" id="amount" name="amount" step="0.01" min="0" required placeholder="Montant en F CFA">                                </div>
                             </div>
                             <div class="form-group">
@@ -734,7 +734,7 @@
                     <div class="transaction-item">
                         <div class="transaction-info">
                             <div class="transaction-icon" style="background-color: {% if t.type == 'expense' %}#FF69B4{% else %}#50C878{% endif %}">
-                                {% if t.category.icon %}{{ t.category.icon }}{% else %} {% endif %}
+                                {{ t.category.icon|default:"💰" }}
                             </div>
                             <div class="transaction-details">
                                 <h4>{{ t.description|default:"-" }}</h4>
@@ -747,7 +747,18 @@
                         <div class="transaction-amount {% if t.type == 'income' %}positive{% else %}negative{% endif %}">
                             {% if t.type == 'income' %}+{% else %}-{% endif %}{{ t.amount }} F&nbsp;CFA
                         </div>
-                      
+                        <div class="transaction-actions">
+                            <button class="btn btn-outline btn-sm" onclick="showEditForm('{{ t.id }}', '{{ t.type }}', '{{ t.amount }}', '{{ t.category.id }}', '{{ t.description|escapejs }}', '{{ t.date }}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <form method="post" style="display:inline;" onsubmit="return confirm('Supprimer cette transaction ?');">
+                                {% csrf_token %}
+                                <input type="hidden" name="delete_transaction" value="{{ t.id }}">
+                                <button type="submit" class="btn btn-outline btn-sm" style="color:#FF6347;">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
                     </div>
                     {% empty %}
                     <p>Aucune transaction pour l’instant.</p>
@@ -786,7 +797,6 @@
                     <div class="form-group">
                         <label for="edit_amount">Montant (F CFA)</label>
                         <div class="input-group">
-                            <i class="fas fa-euro-sign"></i>
                             <input type="number" id="edit_amount" name="amount" step="0.01" min="0" required>
                         </div>
                     </div>

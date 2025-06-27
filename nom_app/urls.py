@@ -1,5 +1,6 @@
 from django.urls import path
 from .views import dashboard_view, index_view, auth_view, register_view, transaction_view, categories_view, budgets_view, export_view, profile_view, logout_view
+from . import views
 
 urlpatterns = [
     path('', index_view, name='index'),  # page d'accueil

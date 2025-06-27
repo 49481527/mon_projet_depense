@@ -536,9 +536,8 @@
                         <i class="fas fa-wallet"></i>
                     </div>
                     <div class="stat-info">
-                        <h3 id="totalBalance">770€</h3>
+                        <h3 id="totalBalance">{{ total_balance|floatformat:0 }} F&nbsp;CFA</h3>
                         <p>Solde actuel</p>
-                        <span class="stat-change positive">+12% ce mois</span>
                     </div>
                 </div>
                 
@@ -547,9 +546,8 @@
                         <i class="fas fa-arrow-up"></i>
                     </div>
                     <div class="stat-info">
-                        <h3 id="totalIncome">2,450€</h3>
+                        <h3 id="totalIncome">{{ total_income|floatformat:0 }} F&nbsp;CFA</h3>
                         <p>Revenus</p>
-                        <span class="stat-change positive">+5% ce mois</span>
                     </div>
                 </div>
                 
@@ -558,9 +556,8 @@
                         <i class="fas fa-arrow-down"></i>
                     </div>
                     <div class="stat-info">
-                        <h3 id="totalExpenses">1,680€</h3>
+                        <h3 id="totalExpenses">{{ total_expenses|floatformat:0 }} F&nbsp;CFA</h3>
                         <p>Dépenses</p>
-                        <span class="stat-change negative">+8% ce mois</span>
                     </div>
                 </div>
                 
@@ -569,9 +566,9 @@
                         <i class="fas fa-piggy-bank"></i>
                     </div>
                     <div class="stat-info">
-                        <h3 id="budgetRemaining">320€</h3>
+                        <h3 id="budgetRemaining">{{ budget_remaining|floatformat:0 }} F&nbsp;CFA</h3>
                         <p>Budget restant</p>
-                        <span class="stat-change neutral">68% utilisé</span>
+                        <span class="stat-change neutral">{{ budget_used_percent }}% utilisé</span>
                     </div>
                 </div>
             </div>
@@ -617,47 +614,26 @@
                     <h3>Transactions récentes</h3>
                     <a href="transactions.html" class="btn btn-outline">Voir tout</a>
                 </div>
-                <div class="transactions-list" id="recentTransactions">
-                    <!-- Sample transactions -->
-                    <div class="transaction-item">
-                        <div class="transaction-info">
-                            <div class="transaction-icon" style="background-color: #FF69B4">
-                                🍽️
-                            </div>
-                            <div class="transaction-details">
-                                <h4>Courses Carrefour</h4>
-                                <p>Alimentation • 15/01/2024</p>
-                            </div>
+               <div class="transactions-list" id="recentTransactions">
+                {% for t in recent_transactions %}
+                <div class="transaction-item">
+                    <div class="transaction-info">
+                        <div class="transaction-icon" style="background-color: {{ t.category.color }}">
+                            {{ t.category.icon }}
                         </div>
-                        <div class="transaction-amount negative">-87,50€</div>
-                    </div>
-                    
-                    <div class="transaction-item">
-                        <div class="transaction-info">
-                            <div class="transaction-icon" style="background-color: #20B2AA">
-                                💼
-                            </div>
-                            <div class="transaction-details">
-                                <h4>Salaire</h4>
-                                <p>Revenu • 01/01/2024</p>
-                            </div>
+                        <div class="transaction-details">
+                            <h4>{{ t.description }}</h4>
+                            <p>{{ t.category.name }} • {{ t.date|date:"d/m/Y" }}</p>
                         </div>
-                        <div class="transaction-amount positive">+2,500€</div>
                     </div>
-                    
-                    <div class="transaction-item">
-                        <div class="transaction-info">
-                            <div class="transaction-icon" style="background-color: #4A90E2">
-                                🚗
-                            </div>
-                            <div class="transaction-details">
-                                <h4>Essence</h4>
-                                <p>Transport • 14/01/2024</p>
-                            </div>
-                        </div>
-                        <div class="transaction-amount negative">-45,30€</div>
-                    </div>
-                </div>
+                    <div class="transaction-amount {% if t.type == 'income' %}positive{% else %}negative{% endif %}">
+                        {% if t.type == 'income' %}+{% else %}-{% endif %}{{ t.amount|floatformat:0 }} F&nbsp;CFA
+        </div>
+    </div>
+    {% empty %}
+    <p>Aucune transaction récente.</p>
+    {% endfor %}
+</div>
             </div>
 
             <!-- Budget Overview -->
@@ -680,7 +656,6 @@
         // Initialize dashboard
         function initializeDashboard() {
             initializeCharts();
-            animateStats();
         }
 
         // Initialize charts
@@ -693,14 +668,14 @@
         function initializeCategoryChart() {
             const ctx = document.getElementById('categoryChart');
             if (!ctx) return;
-            
+
             categoryChart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Alimentation', 'Transport', 'Loisirs', 'Shopping', 'Factures'],
+                    labels: categoryLabels,
                     datasets: [{
-                        data: [287.50, 145.30, 89.99, 156.20, 234.80],
-                        backgroundColor: ['#FF69B4', '#4A90E2', '#50C878', '#FFD700', '#FF6347'],
+                        data: categoryData,
+                        backgroundColor: ['#FF69B4', '#4A90E2', '#50C878', '#FFD700', '#FF6347', '#20B2AA', '#A569BD'],
                         borderWidth: 0,
                         hoverOffset: 4
                     }]
@@ -728,29 +703,17 @@
         function initializeTrendChart() {
             const ctx = document.getElementById('trendChart');
             if (!ctx) return;
-            
-            const labels = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
-            const expenseData = [65, 89, 45, 123, 78, 156, 92];
-            const incomeData = [0, 0, 0, 0, 2500, 0, 450];
-            
+
             trendChart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: labels,
+                    labels: trendLabels,
                     datasets: [
                         {
                             label: 'Dépenses',
-                            data: expenseData,
+                            data: trendData,
                             borderColor: '#FF6347',
                             backgroundColor: 'rgba(255, 99, 71, 0.1)',
-                            tension: 0.4,
-                            fill: true
-                        },
-                        {
-                            label: 'Revenus',
-                            data: incomeData,
-                            borderColor: '#50C878',
-                            backgroundColor: 'rgba(80, 200, 120, 0.1)',
                             tension: 0.4,
                             fill: true
                         }
@@ -850,6 +813,18 @@
                 }
             });
         });
+        
+        function logout() {
+            // Logique de déconnexion
+            alert('Déconnexion réussie !');
+            window.location.href = '/auth/'; // Rediriger vers la page de connexion
+        }
+
+        // Données pour les graphiques (issues du backend Django)
+        const categoryLabels = {{ category_labels|safe }};
+        const categoryData = {{ category_data|safe }};
+        const trendLabels = {{ trend_labels|safe }};
+        const trendData = {{ trend_data|safe }};
     </script>
 </body>
 </html>
